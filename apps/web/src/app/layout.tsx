@@ -27,7 +27,10 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <head>
+        <link rel="stylesheet" href="/cesium/Widgets/widgets.css" />
+      </head>
+      <body className="min-h-full flex flex-col m-0 p-0 overflow-hidden">{children}</body>
     </html>
   );
 }

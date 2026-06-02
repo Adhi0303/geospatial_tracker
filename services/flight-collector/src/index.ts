@@ -4,7 +4,7 @@ import * as dotenv from 'dotenv';
 
 dotenv.config();
 
-const POLLING_INTERVAL = 15000; // OpenSky recommends 10-15s minimum for public API
+const POLLING_INTERVAL = 60000; // Increased to 60s to avoid 429 Too Many Requests
 
 // Default bounding box (Europe: lomin, lamin, lomax, lamax)
 let currentBbox = {

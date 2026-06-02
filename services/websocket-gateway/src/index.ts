@@ -12,7 +12,7 @@ const io = new Server(httpServer, {
   }
 });
 
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT || 3001;
 
 io.on('connection', (socket) => {
   console.log(`[WebSocket] Client connected: ${socket.id}`);
