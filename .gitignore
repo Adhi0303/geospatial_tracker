@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+env.bak/
+venv.bak/
+
+# Node
+node_modules/
+dist/
+build/
+.npm/
+
+# Environment
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
