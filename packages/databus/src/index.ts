@@ -22,11 +22,22 @@ class DataBusService {
    * @param payload The data payload
    */
   public publish<T>(channel: string, payload: T): void {
-    this.subject.next({
-      channel,
-      payload,
-      timestamp: Date.now(),
-    });
+    const event: BusEvent<T> = { channel, payload, timestamp: Date.now() };
+    this.subject.next(event);
+
+    // If running in a Node.js process (collector) but not in the browser, forward it to the gateway.
+    // We check for 'process' and avoid forwarding if we are in the browser.
+    if (typeof process !== 'undefined' && process.env) {
+      // Don't await to avoid blocking the event loop
+      fetch('http://localhost:3001/internal/publish', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ channel, payload })
+      }).catch(err => {
+        // Silently fail if gateway is down, or log minimally
+        // console.warn(`[DataBus] IPC forwarding failed for ${channel}:`, err.message);
+      });
+    }
   }
 
   /**

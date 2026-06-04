@@ -18,18 +18,23 @@ export function RegionSelector({
   onRegionChange: (region: RegionId) => void 
 }) {
   return (
-    <div className="absolute top-4 left-4 z-50 bg-black/80 backdrop-blur text-white p-4 rounded-xl border border-white/10 shadow-lg">
-      <h3 className="text-sm font-semibold mb-2 text-zinc-300">Tracking Region</h3>
-      <select 
-        value={selectedRegion}
-        onChange={(e) => onRegionChange(e.target.value as RegionId)}
-        className="bg-black text-white px-3 py-2 rounded-lg border border-white/20 outline-none focus:border-blue-500 w-full"
-      >
-        <option value="global">Global (Heavy)</option>
-        <option value="europe">Europe</option>
-        <option value="north_america">North America</option>
-        <option value="asia">Asia</option>
-      </select>
+    <div className="absolute top-4 left-4 z-50 glass-panel p-4 min-w-[200px]">
+      <h3 className="text-[11px] font-medium uppercase tracking-[0.08em] text-muted mb-3">Tracking Region</h3>
+      <div className="relative">
+        <select 
+          value={selectedRegion}
+          onChange={(e) => onRegionChange(e.target.value as RegionId)}
+          className="glass-button text-white px-3 py-2 outline-none w-full appearance-none bg-transparent cursor-pointer hover:shadow-glow-cyan focus:shadow-glow-cyan"
+        >
+          <option value="global" className="bg-[#171717]">Global (Heavy)</option>
+          <option value="europe" className="bg-[#171717]">Europe</option>
+          <option value="north_america" className="bg-[#171717]">North America</option>
+          <option value="asia" className="bg-[#171717]">Asia</option>
+        </select>
+        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-white/50">
+          <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+        </div>
+      </div>
     </div>
   );
 }

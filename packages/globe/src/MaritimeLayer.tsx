@@ -3,53 +3,50 @@ import { useCesium } from 'resium';
 import { Cartesian3, Color, PointPrimitiveCollection, DistanceDisplayCondition, NearFarScalar, BlendOption } from 'cesium';
 import { useTelemetryStore } from './store/useTelemetryStore';
 
-export interface Flight {
+export interface Ship {
   id: string;
-  callsign: string;
-  country: string;
-  longitude: number;
   latitude: number;
-  baro_altitude: number;
+  longitude: number;
+  speed: number;
   heading: number;
-  velocity: number;
+  navStatus: number;
 }
 
-export const FlightLayer: React.FC = () => {
+export const MaritimeLayer: React.FC = () => {
   const { viewer } = useCesium();
 
   useEffect(() => {
     if (!viewer) return;
 
-    // Create the low-level primitive collection to hold all flights
+    // Use low-level primitive collection
     const points = new PointPrimitiveCollection();
-    points.blendOption = BlendOption.TRANSLUCENT;
+    points.blendOption = BlendOption.OPAQUE; // Opaque blending optimization
     
     viewer.scene.primitives.add(points);
 
-    // Subscribe to Zustand store changes (bypasses React DOM re-renders)
+    // Subscribe to Zustand store changes directly
     const unsubscribe = useTelemetryStore.subscribe((state) => {
-      const flights = state.flights;
+      const ships = state.ships;
       
-      // Update primitives
       points.removeAll();
       
-      // LoD and Pixel Shading Optimizations
+      // LoD configurations
       const distanceDisplayCondition = new DistanceDisplayCondition(0.0, Number.MAX_VALUE);
       // Keep points visible even when zoomed far out
-      const scaleByDistance = new NearFarScalar(1.5e2, 2.0, 5.0e7, 0.5);
+      const scaleByDistance = new NearFarScalar(1.5e2, 1.5, 5.0e7, 0.3);
       const translucencyByDistance = new NearFarScalar(1.5e2, 1.0, 5.0e7, 0.8);
-      
-      for (let i = 0; i < flights.length; i++) {
-        const flight = flights[i];
-        if (!flight.longitude || !flight.latitude) continue;
-        
+
+      for (let i = 0; i < ships.length; i++) {
+        const ship = ships[i];
         points.add({
           position: Cartesian3.fromDegrees(
-            flight.longitude,
-            flight.latitude,
-            flight.baro_altitude || 10000
+            ship.longitude,
+            ship.latitude,
+            0 // Sea level
           ),
-          color: Color.YELLOW,
+          color: Color.DEEPSKYBLUE,
+          outlineColor: Color.WHITE,
+          outlineWidth: 1,
           pixelSize: 6,
           distanceDisplayCondition,
           scaleByDistance,
@@ -68,6 +65,6 @@ export const FlightLayer: React.FC = () => {
     };
   }, [viewer]);
 
-  // Return null to bypass React DOM rendering entirely
+  // Return null to bypass React DOM
   return null;
 };

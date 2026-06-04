@@ -4,16 +4,20 @@ import React, { useEffect, useState } from "react";
 // Dynamic import is needed for Cesium components in Next.js to avoid SSR issues
 import dynamic from 'next/dynamic';
 import { RegionSelector, RegionId } from "../components/RegionSelector";
+import { LayerSelector } from "../components/LayerSelector";
+import { LiveTelemetry } from "../components/LiveTelemetry";
 import { io, Socket } from "socket.io-client";
-import type { Flight } from "@worldwideview/globe";
+import type { Flight, Ship } from "@worldwideview/globe";
 
 // Dynamically import globe components to prevent "window is not defined" error during SSR
 const GlobeViewer = dynamic(() => import("@worldwideview/globe").then(mod => mod.GlobeViewer), { ssr: false });
-const FlightLayer = dynamic(() => import("@worldwideview/globe").then(mod => mod.FlightLayer), { ssr: false });
+
+import { useTelemetryStore, dataBus } from "@worldwideview/globe";
 
 export default function Home() {
-  const [flights, setFlights] = useState<Flight[]>([]);
   const [region, setRegion] = useState<RegionId>('europe');
+  const [showFlights, setShowFlights] = useState(true);
+  const [showShips, setShowShips] = useState(true);
 
   useEffect(() => {
     // Connect to WebSocket Gateway
@@ -25,7 +29,15 @@ export default function Home() {
 
     socket.on('flights', (data: Flight[]) => {
       if (Array.isArray(data)) {
-        setFlights(data);
+        // Direct non-reactive store writes!
+        useTelemetryStore.getState().setFlights(data);
+      }
+    });
+
+    socket.on('ships', (data: Ship[]) => {
+      if (Array.isArray(data)) {
+        // Direct non-reactive store writes!
+        useTelemetryStore.getState().addShips(data);
       }
     });
 
@@ -34,25 +46,73 @@ export default function Home() {
     };
   }, []);
 
+  // Unified Renderer Sync: Reads the active toggles and pushes to the 3D globe pipeline.
+  // This completely eliminates the flickering/wipeout bug by always merging the datasets!
+  useEffect(() => {
+    const pushToGlobe = (flights: Flight[], ships: Ship[]) => {
+      const entities: any[] = [];
+      
+      if (showFlights) {
+        entities.push(...flights.map(f => ({
+          id: f.id,
+          type: 'flight' as const,
+          layerId: 'flights',
+          latitude: f.latitude,
+          longitude: f.longitude,
+          altitude: f.baro_altitude || 10000,
+          heading: f.heading || 0,
+          speed: f.velocity || 0,
+          timestamp: Date.now()
+        })));
+      }
+      
+      if (showShips) {
+        entities.push(...ships.map(s => ({
+          id: s.id,
+          type: 'maritime' as const,
+          layerId: 'ships',
+          latitude: s.latitude,
+          longitude: s.longitude,
+          altitude: 0,
+          heading: s.heading || 0,
+          speed: s.speed || 0,
+          timestamp: Date.now()
+        })));
+      }
+      
+      dataBus.emit('dataUpdated', { entities });
+    };
+
+    // Immediate sync on toggle change
+    const state = useTelemetryStore.getState();
+    pushToGlobe(state.flights, state.ships);
+
+    // Subscribe to future socket updates arriving in the store
+    const unsubscribe = useTelemetryStore.subscribe((state) => {
+      pushToGlobe(state.flights, state.ships);
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [showFlights, showShips]);
+
   // When Region changes, ideally we'd tell the backend via socket.emit('region:change', region)
   // For now, it will just update the UI state. We will implement the backend region filtering later.
 
   return (
-    <main className="w-screen h-screen m-0 p-0 overflow-hidden relative bg-black">
+    <main className="w-screen h-screen m-0 p-0 overflow-hidden relative bg-bg-primary">
       <RegionSelector selectedRegion={region} onRegionChange={setRegion} />
+      <LayerSelector 
+        showFlights={showFlights} setShowFlights={setShowFlights}
+        showShips={showShips} setShowShips={setShowShips}
+      />
       
-      <div className="absolute inset-0">
-        <GlobeViewer>
-           <FlightLayer flights={flights} />
-        </GlobeViewer>
+      <div className="absolute inset-0 z-0">
+        <GlobeViewer />
       </div>
       
-      <div className="absolute bottom-4 left-4 z-50 bg-black/80 backdrop-blur text-white p-3 rounded-xl border border-white/10 text-xs">
-        <div className="flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-          <span>Live Flights: {flights.length}</span>
-        </div>
-      </div>
+      <LiveTelemetry />
     </main>
   );
 }
