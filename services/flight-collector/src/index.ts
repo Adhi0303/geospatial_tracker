@@ -4,7 +4,7 @@ import * as dotenv from 'dotenv';
 
 dotenv.config();
 
-const POLLING_INTERVAL = 20000; // 20s
+const POLLING_INTERVAL = 60000; // 60s
 
 // Default bounding box (Europe: lomin, lamin, lomax, lamax)
 let currentBbox = {
@@ -20,9 +20,9 @@ let currentInterval = POLLING_INTERVAL;
 
 async function fetchFlights() {
   try {
-    const auth = process.env.OPENSKY_USERNAME ? {
-      username: process.env.OPENSKY_USERNAME,
-      password: process.env.OPENSKY_PASSWORD || ''
+    const auth = process.env.OPENSKY_CLIENT_ID ? {
+      username: process.env.OPENSKY_CLIENT_ID,
+      password: process.env.OPENSKY_CLIENT_SECRET || ''
     } : undefined;
 
     const response = await axios.get(OPENSKY_URL, {

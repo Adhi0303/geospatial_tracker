@@ -11,6 +11,7 @@ import type { Flight, Ship } from "@worldwideview/globe";
 
 // Dynamically import globe components to prevent "window is not defined" error during SSR
 const GlobeViewer = dynamic(() => import("@worldwideview/globe").then(mod => mod.GlobeViewer), { ssr: false });
+const WeatherLayer = dynamic(() => import("@worldwideview/globe").then(mod => mod.WeatherLayer), { ssr: false });
 
 import { useTelemetryStore, dataBus } from "@worldwideview/globe";
 
@@ -18,6 +19,7 @@ export default function Home() {
   const [region, setRegion] = useState<RegionId>('europe');
   const [showFlights, setShowFlights] = useState(true);
   const [showShips, setShowShips] = useState(true);
+  const [weatherLayer, setWeatherLayer] = useState<string>('none');
 
   useEffect(() => {
     // Connect to WebSocket Gateway
@@ -106,10 +108,13 @@ export default function Home() {
       <LayerSelector 
         showFlights={showFlights} setShowFlights={setShowFlights}
         showShips={showShips} setShowShips={setShowShips}
+        weatherLayer={weatherLayer} setWeatherLayer={setWeatherLayer}
       />
       
       <div className="absolute inset-0 z-0">
-        <GlobeViewer />
+        <GlobeViewer>
+          <WeatherLayer layerId={weatherLayer} />
+        </GlobeViewer>
       </div>
       
       <LiveTelemetry />

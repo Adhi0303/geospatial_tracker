@@ -36,7 +36,7 @@ if (!API_KEY || API_KEY === 'your_api_key_here') {
       DataBus.publish('ships', ships);
       shipBatch.clear();
     }
-  }, 20000);
+  }, 60000);
 
   socket.on('message', (data: WebSocket.RawData) => {
     try {
