@@ -6,6 +6,7 @@ import dynamic from 'next/dynamic';
 import { RegionSelector, RegionId } from "../components/RegionSelector";
 import { LayerSelector } from "../components/LayerSelector";
 import { LiveTelemetry } from "../components/LiveTelemetry";
+import { WeatherLegend } from "../components/WeatherLegend";
 import { io, Socket } from "socket.io-client";
 import type { Flight, Ship } from "@worldwideview/globe";
 
@@ -19,7 +20,8 @@ export default function Home() {
   const [region, setRegion] = useState<RegionId>('europe');
   const [showFlights, setShowFlights] = useState(true);
   const [showShips, setShowShips] = useState(true);
-  const [weatherLayer, setWeatherLayer] = useState<string>('none');
+  const [weatherLayers, setWeatherLayers] = useState<string[]>([]);
+  const [weatherOpacity, setWeatherOpacity] = useState(50);
 
   useEffect(() => {
     // Connect to WebSocket Gateway
@@ -82,7 +84,7 @@ export default function Home() {
         })));
       }
       
-      dataBus.emit('dataUpdated', { entities });
+      dataBus.emit('dataUpdated', { pluginId: 'core', entities });
     };
 
     // Immediate sync on toggle change
@@ -108,16 +110,20 @@ export default function Home() {
       <LayerSelector 
         showFlights={showFlights} setShowFlights={setShowFlights}
         showShips={showShips} setShowShips={setShowShips}
-        weatherLayer={weatherLayer} setWeatherLayer={setWeatherLayer}
+        weatherLayers={weatherLayers} setWeatherLayers={setWeatherLayers}
+        weatherOpacity={weatherOpacity} setWeatherOpacity={setWeatherOpacity}
       />
       
       <div className="absolute inset-0 z-0">
         <GlobeViewer>
-          <WeatherLayer layerId={weatherLayer} />
+          {weatherLayers.map(layerId => (
+            <WeatherLayer key={layerId} layerId={layerId} alpha={weatherOpacity / 100} />
+          ))}
         </GlobeViewer>
       </div>
       
       <LiveTelemetry />
+      <WeatherLegend layers={weatherLayers} />
     </main>
   );
 }

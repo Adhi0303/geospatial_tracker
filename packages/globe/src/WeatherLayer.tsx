@@ -19,7 +19,7 @@ export const WeatherLayer: React.FC<WeatherLayerProps> = ({ layerId, alpha = 0.5
     // When the layer changes, create a new UrlTemplateImageryProvider pointing to our proxy
     const newProvider = new UrlTemplateImageryProvider({
       url: `/api/weather/tile/{z}/{x}/{y}?layer=${layerId}`,
-      maximumLevel: 18,
+      maximumLevel: 3,
       // OpenWeatherMap map layers use standard Web Mercator projection (same as Cesium's default)
     });
 

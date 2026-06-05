@@ -7,7 +7,7 @@ type EventHandler<T> = (data: T) => void;
  * Singleton pattern — import and use directly.
  */
 class UIDataBus {
-    private listeners: Map<string, Set<EventHandler<unknown>>> = new Map();
+    private listeners: Map<keyof DataBusEvents, Set<EventHandler<unknown>>> = new Map();
 
     on<K extends keyof DataBusEvents>(
         event: K,
@@ -29,7 +29,7 @@ class UIDataBus {
             try {
                 handler(data);
             } catch (err) {
-                console.error(`[DataBus] Error in handler for "${event}":`, err);
+                console.error(`[DataBus] Error in handler for "${String(event)}":`, err);
             }
         });
     }

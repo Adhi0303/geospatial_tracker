@@ -8,6 +8,7 @@
     "lint": "eslint \"src/**/*.ts*\""
   },
   "dependencies": {
+    "@worldwideview/wwv-plugin-sdk": "workspace:*",
     "cesium": "^1.115.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
